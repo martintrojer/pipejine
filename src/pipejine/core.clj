@@ -91,8 +91,8 @@
 
 (defn spawn-supervisor
   "Spawn a supervisor thread for a queue, function f will be called when the consumers are done
-   will all items put into the queue (will only happen once).
-   Please note that only one supoervisor can be spawned per queue"
+   with all data-items put on the queue (will only happen once).
+   Please note that only one supervisor can be spawned per queue"
   [q f]
   (future (supervisor q f)))
 
