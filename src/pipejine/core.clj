@@ -91,8 +91,8 @@
 
 (defn spawn-supervisor
   "Spawn a supervisor thread for a queue, function f will be called when the consumers are done
-   with all data-items put on the queue (will only happen once).
-   Please note that only one supervisor can be spawned per queue"
+   will all items put into the queue (will only happen once).
+   Please note that multiple supervisors can be spawned per queue"
   [q f]
   (future (supervisor q f)))
 
@@ -100,6 +100,27 @@
   "Mark q1 as producer of qs"
   [q1 & qs]
   (spawn-supervisor q1 #(doseq [q qs] (produce-done q))))
+
+;; -------------------------------------------
+;; Helpers
+
+(defn prod-fn
+  "Returns a function used to produce data into a queue"
+  [q]
+  (fn [d] (produce q d)))
+
+(defn read-seq
+  "Returns a lazy-seq with data consumed from a q. To be used *INSTEAD OF* spawn-consumers"
+  [{:keys [run time-out] :as q}]
+  (let [nq (LinkedBlockingQueue.)]        ;; we need a new queue here in order to use q's partitioning
+    (spawn-consumers q (fn [d] (.put nq d)))
+    (spawn-supervisor q list)
+    ((fn s []
+       (lazy-seq (loop [d nil]
+                   (when @run
+                     (if d
+                       (cons d (s))
+                       (recur (.poll nq time-out TimeUnit/MILLISECONDS))))))))))
 
 (defn chain-queues
   "Spawn supervisors for a chain of queues (non-branching pipeline) so that the function f is called

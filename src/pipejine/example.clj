@@ -46,14 +46,14 @@
                                  (Thread/sleep 10)
                                  (pipe/produce q4 (/ % 2))))
 
-    (pipe/spawn-consumers q4 #(log/log (str "** " %)))
+    (future (log/log (str "***" (first (pipe/read-seq q4)))))
 
     (dotimes [i 20]                                          ;; Seed q1 with data
       (Thread/sleep 10)
       (log/log (str "prod: " i))
       (pipe/produce q1 i)
 
-      (when (= i 5)                               ;; unexpected error
+      (when (= i 5)                                         ;; unexpected error
         (pipe/shutdown q1)))
 
     (pipe/produce-done q1)                                  ;; Mark that we're done putting data in q1
