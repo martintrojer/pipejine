@@ -1,5 +1,6 @@
 (ns pipejine.core
-  (:require [clojure.stacktrace :as st])
+  (:require [clojure.tools.logging :as log]
+            [clojure.stacktrace :as st])
   (:import [java.util.concurrent LinkedBlockingQueue CountDownLatch TimeUnit]))
 
 ;; TODO - potential problems
@@ -8,26 +9,23 @@
 
 (defn new-queue
   "Create and initialize a new consumer queue"
-  [{:keys [queue-size number-of-consumer-threads number-of-producers partition time-out debug]}]
-  (let [queue-size (or queue-size 1)
-        number-of-consumer-threads (or number-of-consumer-threads 1)
-        number-of-producers (or number-of-producers 1)
-        partition (or partition 0)
-        time-out (or time-out 500)]
-    {:q (LinkedBlockingQueue. queue-size)
+  [{:keys [name queue-size number-of-consumer-threads number-of-producers partition time-out]}]
+  (let [number-of-consumer-threads (or number-of-consumer-threads 1)
+        number-of-producers (or number-of-producers 1)]
+    {:q (LinkedBlockingQueue. (or queue-size 1))
+     :name (or name (gensym "queue"))
      :consumers-done (CountDownLatch. number-of-consumer-threads)
      :producers-done (CountDownLatch. number-of-producers)
-     :part partition                              ;; :all for gathering everything (one consumer thread only!)
+     :part (or partition 0)                              ;; :all for gathering everything (one consumer thread only!)
      :thread-num number-of-consumer-threads
      :run (atom true)
-     :time-out time-out
-     :debug debug}))
+     :time-out (or time-out 500)}))
 
 (defn produce
   "Produce some data into queue"
   [{:keys [q run time-out]} d]
   (loop [r false]                                 ;; don't put anything on the queue when aborted,
-    (when (and (not r) @run)                      ;; this is to avoid blocking producing threads
+    (when (and d (not r) @run)                    ;; this is to avoid blocking producing threads
       (recur (.offer q d time-out TimeUnit/MILLISECONDS)))))
 
 (defn produce-done
@@ -37,11 +35,11 @@
 
 (defn shutdown [{:keys [run producers-done] :as q}]
   (reset! run false)
-  ;; drain latch to release the supervisor
+  ;; drain latch to release the supervisors
   (while (not (zero? (.getCount producers-done)))
     (produce-done q)))
 
-(defn- consumer [{:keys [q consumers-done producers-done part debug run time-out]} f]
+(defn- consumer [{:keys [q consumers-done producers-done part run time-out]} f]
   (let [deliver (fn [d acc]
                   (let [acc (if d (conj acc d) acc)]
                     (cond
@@ -73,7 +71,10 @@
             (when-not (zero? (count acc)) (f acc))         ;; deliver any outstanding data before quitting
             (recur acc))))
       (catch Exception e
-        (st/print-stack-trace e))
+        (let [writer (java.io.StringWriter.)]
+          (binding [*out* writer]
+            (st/print-stack-trace e)
+            (log/error (str writer)))))
       (finally
         (.countDown consumers-done)))))
 
@@ -114,7 +115,7 @@
   [{:keys [run time-out] :as q}]
   (let [nq (LinkedBlockingQueue.)]        ;; we need a new queue here in order to use q's partitioning
     (spawn-consumers q (fn [d] (.put nq d)))
-    (spawn-supervisor q list)
+    (spawn-supervisor q (constantly true))
     ((fn s []
        (lazy-seq (loop [d nil]
                    (when @run
@@ -129,3 +130,22 @@
   (doseq [[q1 q2] (partition 2 1 qs)]
     (spawn-supervisor q1 #(produce-done q2)))
   (spawn-supervisor (last qs) f))
+
+(defn spawn-logger [& qs]
+  "Spawn a watcher thread of supplied queues. Will stop when all qs are shut down or
+  the returned shutdown function is called."
+  (let [running (atom true)
+        log-fn (fn []
+                 (while (and @running (some #(-> % :run deref) qs))
+                   (do
+                     (Thread/sleep 1000)
+                     (log/info
+                      (apply str
+                             "------------------------------\n"
+                             (for [{:keys [name run q producers-done consumers-done]} qs]
+                               (format "%-15.15s [r]%-5.5b [q]%-4d [p#]%-2d [c#]%-2d\n"
+                                       name @run
+                                       (.size q) (.getCount producers-done)
+                                       (.getCount consumers-done))))))))]
+    (.start (Thread. log-fn))
+    (fn [] (reset! running false))))
