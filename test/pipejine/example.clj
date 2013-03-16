@@ -34,7 +34,7 @@
 
     (pipe/spawn-consumers q1 #(do
                                  (pipe/produce q2 (inc %))  ;; q1 workers puts stuff on q2
-                                 (pipe/produce q3 (dec %))  ;; .. and q2
+                                 (pipe/produce q3 (dec %))  ;; .. and q3
                                  ))
 
     (pipe/spawn-consumers q2 #(do
