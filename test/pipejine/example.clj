@@ -59,7 +59,8 @@
       (log/info "prod: " i)
       (pipe/produce q1 i)
 
-      (when (= i 5)                                          ;; unexpected error
+      ;; unexpected error
+      (when (= i 5)                                          
         (pipe/shutdown q1)))
 
     (pipe/produce-done q1)                                  ;; Mark that we're done putting data in q1
