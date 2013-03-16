@@ -4,8 +4,7 @@ pipejine
 Flexible, Safe and Simple Multi-Consumer/Producer Clojure Pipelines
 
 Main features;
-* Flexible number of producers and consumers, for each queue in the pipeline
-* Configurable number of consumers/producers per queue
+* Configurable number of producers and consumers for each queue in the pipeline
 * Supports any DAG-like topology
 * The queues supports partitioning (i.e. consumers will be fed batches)
 * Trickles "done" through the pipeline, so you can easily know when the entire computation is done

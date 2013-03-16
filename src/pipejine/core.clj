@@ -92,7 +92,6 @@
    Please note that multiple supervisors can be spawned per queue"
   [q f]
   (future (supervisor q f)))
- flpdfld
 
 (defn producer-of
   "Mark q1 as producer of qs"
