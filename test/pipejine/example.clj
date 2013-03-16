@@ -51,7 +51,7 @@
     (pipe/producer-of q3 q4)
     (pipe/spawn-supervisor q4 #(log/info "pipeline exhausted!"))
 
-    ;; example of read-seq, could just as well be another (consumer as above)
+    ;; example of read-seq, could just as well be another consumer (as above)
     (future (log/info "***" (first (pipe/read-seq q4))))
 
     (dotimes [i 20]                                          ;; Seed q1 with data
