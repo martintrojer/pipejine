@@ -43,7 +43,6 @@
                                    (pipe/produce q4 (* d d)))))
 
     (pipe/spawn-consumers q3 #(do
-                                 ;; (throw (Exception. "blah"))
                                  (Thread/sleep 10)
                                  (pipe/produce q4 (/ % 2))))
 
