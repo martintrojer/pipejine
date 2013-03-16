@@ -3,10 +3,6 @@
             [clojure.stacktrace :as st])
   (:import [java.util.concurrent LinkedBlockingQueue CountDownLatch TimeUnit]))
 
-;; TODO - potential problems
-;; 1/ If all consumers crash, items will be left on the queue,
-;;    and the "done" signal will trickle through
-
 (defn new-queue
   "Create and initialize a new consumer queue"
   [{:keys [name queue-size number-of-consumer-threads number-of-producers partition time-out]}]
@@ -96,6 +92,7 @@
    Please note that multiple supervisors can be spawned per queue"
   [q f]
   (future (supervisor q f)))
+ flpdfld
 
 (defn producer-of
   "Mark q1 as producer of qs"
