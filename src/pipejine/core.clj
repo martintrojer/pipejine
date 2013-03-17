@@ -4,14 +4,13 @@
   (:import [java.util.concurrent LinkedBlockingQueue CountDownLatch TimeUnit]))
 
 (defn new-queue
-  "Create and initialize a new consumer queue"
+  "Create and initialize a new queue"
   [{:keys [name queue-size number-of-consumer-threads number-of-producers partition time-out]}]
-  (let [number-of-consumer-threads (or number-of-consumer-threads 1)
-        number-of-producers (or number-of-producers 1)]
+  (let [number-of-consumer-threads (or number-of-consumer-threads 1)]
     {:q (LinkedBlockingQueue. (or queue-size 1))
      :name (or name (gensym "queue"))
      :consumers-done (CountDownLatch. number-of-consumer-threads)
-     :producers-done (CountDownLatch. number-of-producers)
+     :producers-done (CountDownLatch. (or number-of-producers 1))
      :part (or partition 0)                              ;; :all for gathering everything (one consumer thread only!)
      :thread-num number-of-consumer-threads
      :run (atom true)
