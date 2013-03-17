@@ -17,4 +17,4 @@ For more info see the [example](https://github.com/martintrojer/pipejine/blob/ma
 
 ### Usage
 
-Add ```[pipejine "0.1.0]``` to your leiningen :dependecies
+Add ```[pipejine "0.1.0"]``` to your leiningen :dependecies

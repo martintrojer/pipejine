@@ -34,7 +34,7 @@
 
     (pipe/spawn-consumers q1 #(do
                                  (pipe/produce q2 (inc %))  ;; q1 workers puts stuff on q2
-                                 (pipe/produce q3 (dec %))  ;; .. and q2
+                                 (pipe/produce q3 (dec %))  ;; .. and q3
                                  ))
 
     (pipe/spawn-consumers q2 #(do
@@ -43,10 +43,15 @@
                                    (pipe/produce q4 (* d d)))))
 
     (pipe/spawn-consumers q3 #(do
-                                 ;; (throw (Exception. "blah"))
                                  (Thread/sleep 10)
                                  (pipe/produce q4 (/ % 2))))
 
+    (pipe/producer-of q1 q2 q3)
+    (pipe/producer-of q2 q4)
+    (pipe/producer-of q3 q4)
+    (pipe/spawn-supervisor q4 #(log/info "pipeline exhausted!"))
+
+    ;; example of read-seq, could just as well be another consumer (as above)
     (future (log/info "***" (first (pipe/read-seq q4))))
 
     (dotimes [i 20]                                          ;; Seed q1 with data
@@ -54,15 +59,11 @@
       (log/info "prod: " i)
       (pipe/produce q1 i)
 
-      (when (= i 5)                                          ;; unexpected error
+      ;; unexpected error
+      (when (= i 5)                                          
         (pipe/shutdown q1)))
 
     (pipe/produce-done q1)                                  ;; Mark that we're done putting data in q1
-
-    (pipe/producer-of q1 q2 q3)
-    (pipe/producer-of q2 q4)
-    (pipe/producer-of q3 q4)
-    (pipe/spawn-supervisor q4 #(log/info "pipeline exhausted!"))
 
     ;; (logger)
     ))
