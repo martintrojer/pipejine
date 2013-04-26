@@ -18,23 +18,26 @@
 
 (defn produce
   "Produce some data into queue"
-  [{:keys [q run time-out]} d]
+  [{:keys [^LinkedBlockingQueue q run time-out]} d]
   (loop [r false]                                 ;; don't put anything on the queue when aborted,
     (when (and d (not r) @run)                    ;; this is to avoid blocking producing threads
       (recur (.offer q d time-out TimeUnit/MILLISECONDS)))))
 
 (defn produce-done
   "Tell a queue that no more data will be produced, each producer should call this only once"
-  [{:keys [producers-done]}]
+  [{:keys [^CountDownLatch producers-done]}]
   (.countDown producers-done))
 
-(defn shutdown [{:keys [run producers-done] :as q}]
+(defn shutdown [{:keys [run ^CountDownLatch producers-done] :as q}]
   (reset! run false)
   ;; drain latch to release the supervisors
   (while (not (zero? (.getCount producers-done)))
     (produce-done q)))
 
-(defn- consumer [{:keys [q consumers-done producers-done part run time-out]} f]
+(defn- consumer [{:keys [^LinkedBlockingQueue q
+                         ^CountDownLatch consumers-done
+                         ^CountDownLatch producers-done
+                         part run time-out]} f]
   (let [deliver (fn [d acc]
                   (let [acc (if d (conj acc d) acc)]
                     (cond
