@@ -13,7 +13,6 @@
   (let [q1 (pipe/new-queue {:name "q1"
                              :queue-size 5
                              :number-of-consumer-threads 5
-                             :max-size 1
                              :number-of-producers 1})
         q2 (pipe/new-queue {:name "q2"
                              :queue-size 2
