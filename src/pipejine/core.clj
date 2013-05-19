@@ -1,7 +1,8 @@
 (ns pipejine.core
   (:require [clojure.tools.logging :as log]
             [clojure.stacktrace :as st])
-  (:import [java.util.concurrent LinkedBlockingQueue CountDownLatch TimeUnit]))
+  (:import [java.util.concurrent LinkedBlockingQueue CountDownLatch TimeUnit]
+           [org.slf4j MDC]))
 
 (defn new-queue
   "Create and initialize a new queue"
@@ -84,9 +85,9 @@
 
 (defn spawn-consumers
   "Spawn consumer threads for a queue, function f will be called on each data item consumed"
-  [{:keys [thread-num] :as q} f]
-  (dotimes [_ thread-num]
-    (future (consumer q f))))
+  [{:keys [name thread-num] :as q} f]
+  (dotimes [num thread-num]
+    (future (MDC/put "pipejine.q" (format "%s-%02d" name num)) (consumer q f))))
 
 (defn spawn-supervisor
   "Spawn a supervisor thread for a queue, function f will be called when the consumers are done
