@@ -56,7 +56,7 @@ The configuration keys and their effects are:
 
 `:queue-size`
 :   The maximum size of the underlying `LinkedBlockingQueue`. Defaults to 1 if
-    not set. When the queue is filled, any proccesses attempting to place items 
+    not set. When the queue is filled, any processes attempting to place items 
     into it with `offer` will block until a spot is available.
 
 `:number-of-consumer-threads`
@@ -78,7 +78,7 @@ The configuration keys and their effects are:
 
 `:time-out`
 :   How long a consumer thread should wait for an item from the queue to become
-    avaiable before aborting. Time specified in milliseconds.
+    available before aborting. Time specified in milliseconds.
 
 ```clojure
 ;; Trivial Example
@@ -162,6 +162,6 @@ You would register `q1` as producer for these two like so:
 (producer-of q1 q2 q3)
 ```
 
-Using the thrush macro makes it slighly easier for humans to parse this:
+Using the thrush macro makes it slightly easier for humans to parse this:
 `(->> q1 (producer-of q2 q3))` can be read as "Queue 1 is a producer of items 
 for Queue 2 and Queue 3".
