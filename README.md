@@ -9,7 +9,7 @@ Flexible, Safe, and Simple Multi-Consumer/Producer Clojure Pipelines
   the pipeline.
 * Supports any DAG-esque topology
 * Native support for queue partitioning (i.e. consumers will be fed batches)
-* "Done" trickles through the pipeline; easily determine the entire computation 
+* "Done" trickles through the pipeline; easily determine when the entire computation 
   is done
 * Any part of the pipeline can be prematurely shutdown before producers are done
 * Safe, caters to handling failing consumers and producers
