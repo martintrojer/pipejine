@@ -34,7 +34,7 @@ of releases may be found there, in addition to the tags in the repository.
 With Leiningen, add it to your dependencies in `project.clj`:
 
 ```clojure
-[pipejine "0.1.1"]
+[pipejine "0.1.2"]
 ``` 
 
 
