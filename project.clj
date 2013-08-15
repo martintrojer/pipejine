@@ -1,4 +1,4 @@
-(defproject pipejine "0.1.2-SNAPSHOT"
+(defproject pipejine "0.1.2"
   :description "Flexible, Safe and Simple Multi-Consumer/Producer Clojure Pipelines"
   :url "https://github.com/martintrojer/pipejine"
   :license {:name "Eclipse Public License"
