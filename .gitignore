@@ -6,3 +6,8 @@ pom.xml
 /target/
 .lein-deps-sum
 /.lein-failures
+/.DS_Store
+/.idea/
+/.nrepl-port
+/pipejine.iml
+/src/.DS_Store

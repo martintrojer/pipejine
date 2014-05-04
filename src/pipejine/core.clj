@@ -6,16 +6,17 @@
 
 (defn new-queue
   "Create and initialize a new queue"
-  [{:keys [name queue-size number-of-consumer-threads number-of-producers partition time-out]}]
-  (let [number-of-consumer-threads (or number-of-consumer-threads 1)]
-    {:q (LinkedBlockingQueue. (or queue-size 1))
-     :name (or name (gensym "queue"))
-     :consumers-done (CountDownLatch. number-of-consumer-threads)
-     :producers-done (CountDownLatch. (or number-of-producers 1))
-     :part (or partition 0)                              ;; :all for gathering everything (one consumer thread only!)
-     :thread-num number-of-consumer-threads
-     :run (atom true)
-     :time-out (or time-out 500)}))
+  [{:keys [name queue-size number-of-consumer-threads number-of-producers partition time-out]
+    :or {name (gensym name), queue-size 1, number-of-consumer-threads 1,
+         number-of-producers 1, partition 0, time-out 500}}]
+  {:q              (LinkedBlockingQueue. queue-size)
+   :name           name
+   :consumers-done (CountDownLatch. number-of-consumer-threads)
+   :producers-done (CountDownLatch. number-of-producers)
+   :part           partition                              ;; :all for gathering everything (one consumer thread only!)
+   :thread-num     number-of-consumer-threads
+   :run            (atom true)
+   :time-out       time-out})
 
 (defn produce
   "Produce some data into queue"
